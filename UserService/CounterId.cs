@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UserService.Exceptions;
 
 namespace UserService
 {
-    class CounterId : ICounterId
+    public class CounterId : ICounterId
     {
         /// <summary>
         /// Method that gives algorithm of counting id of user
@@ -14,6 +15,10 @@ namespace UserService
         /// <param name="user">User to set id</param>
         public void CountId(User user)
         {
+            if (user == null)
+                throw new ArgumentNullException();
+            if (user.FirstName == null || user.LastName == null)
+                throw new EmptyUserException();
             user.Id =  LyHash(user.FirstName) + LyHash(user.LastName) + LyHash(user.Age.ToString());
         }
 

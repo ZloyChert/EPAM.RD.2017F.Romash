@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UserService.Exceptions;
 
 namespace UserService
 {
@@ -27,11 +28,13 @@ namespace UserService
         /// <param name="user">The element to add</param>
         public void Add(User user)
         {
-            if ( user == null)
+            if (user == null)
                 throw new ArgumentNullException();
-            if ( user.FirstName == null || user.LastName == null)
-                throw new Exception(); // custom
+            if (user.FirstName == null || user.LastName == null)
+                throw new EmptyUserException();
             idCounter.CountId(user);
+            if (userList.Exists(u => u.Id == user.Id))
+                throw new UserExistsException();
             userList.Add(user);
         }
 

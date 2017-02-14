@@ -63,7 +63,7 @@ namespace UserService
                 }
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

@@ -16,12 +16,12 @@ namespace UserService.Services
     [Serializable]
     public class UserServiceMaster : MarshalByRefObject, IUserServiceMaster, IDisposable
     {
-        private int countOfRemainingSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
         private readonly List<User> userList;
         private readonly ICounterId idCounter;
         public event EventHandler<AddUserEventArgs> AddUser = delegate { };
         public event EventHandler<DeleteUserEventArgs> DeleteUser = delegate { };
         public event EventHandler<AddUserEventArgs> AddUserOnSlaveCreating = delegate { };
+        public int CountOfRemainingSlaves { get; private set;}
 
         /// <summary>
         /// Public constructor
@@ -34,19 +34,24 @@ namespace UserService.Services
             this.idCounter = idCounter;
             userList = new List<User>();
             Deserialize();
+
+            int tempCount;
+            if (!int.TryParse(ConfigurationManager.AppSettings["CountOfSlaves"], out tempCount))
+                tempCount = 1;
+            CountOfRemainingSlaves = tempCount;
         }
 
         public bool TryGetNextSlaveInstance(out IUserService slaveService)
         {
             int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
-            if (countOfRemainingSlaves > 0)
+            if (CountOfRemainingSlaves > 0)
             {
-                AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - countOfRemainingSlaves + 1}");
+                AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - CountOfRemainingSlaves + 1}");
                 var instance = firstDomain.CreateInstanceAndUnwrap("UserService",
                     "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new[] {(object) this},
                     CultureInfo.CurrentCulture, null);
                 slaveService = (IUserService) instance;
-                countOfRemainingSlaves--;
+                CountOfRemainingSlaves--;
                 OnAddUserOnCreatingSlave(new AddUserEventArgs(userList));
                 return true;
             }
@@ -107,7 +112,7 @@ namespace UserService.Services
         /// <param name="deletePredicate">Func that checks on each element</param>
         public void Delete(Func<User, bool> deletePredicate)
         {
-            if ( deletePredicate == null)
+            if (deletePredicate == null)
                 throw new ArgumentNullException();
             foreach (var user in Search(deletePredicate))
             {
@@ -152,7 +157,7 @@ namespace UserService.Services
                 ReadXml(reader);
         }
 
-        protected  void WriteXml(XmlWriter writer)
+        protected void WriteXml(XmlWriter writer)
         {
             writer.WriteStartElement("UserStorage");
             foreach (var user in userList)
@@ -166,7 +171,7 @@ namespace UserService.Services
             writer.WriteEndElement();
         }
 
-        protected  void ReadXml(XmlReader reader)
+        protected void ReadXml(XmlReader reader)
         {
             if (reader.MoveToContent() == XmlNodeType.Element && reader.LocalName == "UserStorage")
             {

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UserService.Exceptions;
+using UserService.IdCounters;
 
 namespace UserService.Tests
 {
@@ -15,7 +16,7 @@ namespace UserService.Tests
         public void Add_ArgumentNullExceptionExpected()
         {
             CounterId counter = new CounterId();
-            UserService us = new UserService(counter);
+            Services.UserServiceMaster us = new Services.UserServiceMaster(counter);
             Assert.Throws(typeof(ArgumentNullException), () => us.Add(null));
         }
 
@@ -23,7 +24,7 @@ namespace UserService.Tests
         public void Add_EmptyUserExceptionExpected()
         {
             CounterId counter = new CounterId();
-            UserService us = new UserService(counter);
+            Services.UserServiceMaster us = new Services.UserServiceMaster(counter);
             User user = new User {FirstName = "Pavel"};
             Assert.Throws(typeof(EmptyUserException), () => us.Add(user));
         }
@@ -32,7 +33,7 @@ namespace UserService.Tests
         public void Add_UserExistsExceptionExpected()
         {
             CounterId counter = new CounterId();
-            UserService us = new UserService(counter);
+            Services.UserServiceMaster us = new Services.UserServiceMaster(counter);
             User user = new User
             {
                 FirstName = "Pavel",

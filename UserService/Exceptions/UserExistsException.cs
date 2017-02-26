@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace UserService.Exceptions
 {
+    [Serializable]
     public class UserExistsException : System.Exception
     {
         public UserExistsException()

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace UserService.Exceptions
 {
+    [Serializable]
     public class EmptyUserException : System.Exception
     {
         public EmptyUserException()

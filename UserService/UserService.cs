@@ -18,6 +18,8 @@ namespace UserService
         /// <param name="idCounter">Class that counts id</param>
         public UserService(ICounterId idCounter)
         {
+            if ( idCounter == null)
+                throw new ArgumentNullException();
             this.idCounter = idCounter;
             userList = new List<User>();
         }
@@ -45,6 +47,8 @@ namespace UserService
         /// <returns>Sequence off elements</returns>
         public IEnumerable<User> Search(Func<User, bool> searchPredicate)
         {
+            if (searchPredicate == null)
+                throw new ArgumentNullException();
             return userList.Where(searchPredicate);
         }
 
@@ -52,21 +56,13 @@ namespace UserService
         /// Deleting an element or elements frome the sequnce
         /// </summary>
         /// <param name="deletePredicate">Func that checks on each element</param>
-        /// <returns>True if deleting was ok, else if there was an error</returns>
-        public bool TryDelete(Func<User, bool> deletePredicate)
+        public void Delete(Func<User, bool> deletePredicate)
         {
-            try
-            {
-                foreach (var user in Search(deletePredicate))
-                {
-                    userList.Remove(user);
-                }
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            if ( deletePredicate == null)
+                throw new ArgumentNullException();
+            foreach (var user in Search(deletePredicate))
+                userList.Remove(user);
+
         }
     }
 }

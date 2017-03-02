@@ -11,6 +11,5 @@ namespace UserService.Services
         event EventHandler<AddUserEventArgs> AddUser;
         event EventHandler<DeleteUserEventArgs> DeleteUser;
         event EventHandler<AddUserEventArgs> AddUserOnSlaveCreating;
-
     }
 }

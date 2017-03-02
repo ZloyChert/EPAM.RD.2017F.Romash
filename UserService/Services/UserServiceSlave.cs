@@ -9,7 +9,6 @@ using UserService.Exceptions;
 
 namespace UserService.Services
 {
-    // осталось рефлекией
     [Serializable]
     internal class UserServiceSlave : MarshalByRefObject, IUserService
     {

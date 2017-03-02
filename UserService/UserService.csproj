@@ -51,6 +51,7 @@
     <Compile Include="Exceptions\EmptyUserException.cs" />
     <Compile Include="Exceptions\UserExistsException.cs" />
     <Compile Include="IdCounters\ICounterId.cs" />
+    <Compile Include="ServiceManager.cs" />
     <Compile Include="Services\IUserService.cs" />
     <Compile Include="Services\IUserServiceMaster.cs" />
     <Compile Include="Services\UserServiceSlave.cs" />

@@ -21,8 +21,7 @@ namespace UserService.Services
         public event EventHandler<AddUserEventArgs> AddUser = delegate { };
         public event EventHandler<DeleteUserEventArgs> DeleteUser = delegate { };
         public event EventHandler<AddUserEventArgs> AddUserOnSlaveCreating = delegate { };
-        public int CountOfRemainingSlaves { get; private set;}
-
+        
         /// <summary>
         /// Public constructor
         /// </summary>
@@ -34,29 +33,6 @@ namespace UserService.Services
             this.idCounter = idCounter;
             userList = new List<User>();
             Deserialize();
-
-            int tempCount;
-            if (!int.TryParse(ConfigurationManager.AppSettings["CountOfSlaves"], out tempCount))
-                tempCount = 1;
-            CountOfRemainingSlaves = tempCount;
-        }
-
-        public bool TryGetNextSlaveInstance(out IUserService slaveService)
-        {
-            int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
-            if (CountOfRemainingSlaves > 0)
-            {
-                AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - CountOfRemainingSlaves + 1}");
-                var instance = firstDomain.CreateInstanceAndUnwrap("UserService",
-                    "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new[] {(object) this},
-                    CultureInfo.CurrentCulture, null);
-                slaveService = (IUserService) instance;
-                CountOfRemainingSlaves--;
-                OnAddUserOnCreatingSlave(new AddUserEventArgs(userList));
-                return true;
-            }
-            slaveService = null;
-            return false;
         }
 
         /// <summary>
@@ -127,10 +103,10 @@ namespace UserService.Services
             temp?.Invoke(this, e);
         }
 
-        protected virtual void OnAddUserOnCreatingSlave(AddUserEventArgs e)
+        protected virtual void OnAddUserOnCreatingSlave()
         {
             EventHandler<AddUserEventArgs> temp = AddUserOnSlaveCreating;
-            temp?.Invoke(this, e);
+            temp?.Invoke(this, new AddUserEventArgs(userList));
         }
 
         protected virtual void OnDeleteUser(DeleteUserEventArgs e)

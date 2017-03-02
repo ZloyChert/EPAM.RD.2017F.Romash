@@ -18,18 +18,25 @@ namespace EventsTester
 
         static void Main(string[] args)
         {
-            AppDomain firstDomain = AppDomain.CreateDomain($"Domain_Slave");
-            var instance = firstDomain.CreateInstanceAndUnwrap("UserService",
-                "UserService.Services.UserServiceMaster", true, BindingFlags.Default, null, new[] { (object)new CounterId() },
-                CultureInfo.CurrentCulture, null);
-            UserServiceMaster usm = (UserServiceMaster)instance;
+            ServiceManager sm = new ServiceManager();
+            IUserServiceMaster usm;
+            sm.TryGetMasterInstance(out usm);
             //UserServiceMaster usm = new UserServiceMaster(new CounterId());
             IUserService firstUss;
-            usm.TryGetNextSlaveInstance(out firstUss);
+            sm.TryGetNextSlaveInstance(out firstUss);
             //firstUss = new UserServiceSlave(usm);
-            //usm.Add(new User {Age = 8, FirstName = "a", LastName = "a"});
-            Console.WriteLine($"{usm.Search(n => true).FirstOrDefault().FirstName}");
-            Console.WriteLine($"{firstUss.Search(n => true).FirstOrDefault().FirstName}");
+            //usm.Add(new User {Age = 8, FirstName = "b", LastName = "b"});
+            Console.WriteLine("Master");
+            foreach (var user in usm.Search(n => true))
+            {
+                Console.Write($"{user.FirstName}/{user.LastName};");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Slave");
+            foreach (var user in firstUss.Search(n => true))
+            {
+                Console.Write($"{user.FirstName}/{user.LastName};");
+            }
             Console.ReadLine();
         }
     }

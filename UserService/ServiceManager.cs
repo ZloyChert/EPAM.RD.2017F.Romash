@@ -48,7 +48,7 @@ namespace UserService
         public bool TryGetNextSlaveInstance(out IUserService slaveService)
         {
             int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
-            if (CountOfRemainingSlaves > 0)
+            if (CountOfRemainingSlaves > 0 && CountOfRemainingMasters == 0)
             {
                 AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - CountOfRemainingSlaves + 1}");
                 var instance = firstDomain.CreateInstanceAndUnwrap("UserService",

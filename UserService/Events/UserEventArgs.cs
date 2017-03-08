@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace UserService.Events
 {
     [Serializable]
-    public class AddUserEventArgs
+    public class UserEventArgs
     {
-        public AddUserEventArgs(User user)
+        public UserEventArgs(User user)
         {
             Users = new List<User> {user};
         }
-        public AddUserEventArgs(IEnumerable<User> users)
+        public UserEventArgs(IEnumerable<User> users)
         {
             Users = new List<User>(users);
         }

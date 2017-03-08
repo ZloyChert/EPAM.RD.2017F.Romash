@@ -9,7 +9,10 @@ using UserService.IdCounters;
 using UserService.Services;
 using System.Configuration;
 using System.Globalization;
+using System.Net;
 using System.Reflection;
+using System.Threading;
+using UserService.TCP;
 
 namespace EventsTester
 {
@@ -21,11 +24,15 @@ namespace EventsTester
             ServiceManager sm = new ServiceManager();
             IUserServiceMaster usm;
             sm.TryGetMasterInstance(out usm);
-            //UserServiceMaster usm = new UserServiceMaster(new CounterId());
+            ServerTcp st = new ServerTcp(usm);
+            ClientTcp ct = new ClientTcp();
+            Thread serverThread = new Thread(st.RunServer);
+            serverThread.Start();
+            Thread clientThread = new Thread(ct.RunClient);
+            clientThread.Start();
             IUserService firstUss;
-            sm.TryGetNextSlaveInstance(out firstUss);
-            //firstUss = new UserServiceSlave(usm);
-            //usm.Add(new User {Age = 8, FirstName = "b", LastName = "b"});
+            sm.TryGetNextSlaveInstance(out firstUss, ct);
+            usm.Add(new User { Age = 12, FirstName = "qqwwwqq", LastName = "w" });
             Console.WriteLine("Master");
             foreach (var user in usm.Search(n => true))
             {
@@ -37,7 +44,24 @@ namespace EventsTester
             {
                 Console.Write($"{user.FirstName}/{user.LastName};");
             }
+            /*******/
+            usm.Delete(n => n.LastName == "w");
+            Thread.Sleep(2000);
+            Console.WriteLine("Master");
+            foreach (var user in usm.Search(n => true))
+            {
+                Console.Write($"{user.FirstName}/{user.LastName};");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Slave");
+            foreach (var user in firstUss.Search(n => true))
+            {
+                Console.Write($"{user.FirstName}/{user.LastName};");
+            }
+
             Console.ReadLine();
+            st.StopServer();
+            ct.StopClient();
         }
     }
 }

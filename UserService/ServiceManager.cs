@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UserService.Events;
 using UserService.Services;
+using UserService.TCP;
 
 namespace UserService
 {
@@ -45,14 +46,14 @@ namespace UserService
             return false;
         }
 
-        public bool TryGetNextSlaveInstance(out IUserService slaveService)
+        public bool TryGetNextSlaveInstance(out IUserService slaveService, ClientTcp t)
         {
             int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
             if (CountOfRemainingSlaves > 0 && CountOfRemainingMasters == 0)
             {
                 AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - CountOfRemainingSlaves + 1}");
                 var instance = firstDomain.CreateInstanceAndUnwrap("UserService",
-                    "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new[] { (object)userServiceMaster },
+                    "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new[] { (object)t },
                     CultureInfo.CurrentCulture, null);
                 slaveService = (IUserService)instance;
                 CountOfRemainingSlaves--;

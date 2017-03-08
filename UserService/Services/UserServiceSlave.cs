@@ -6,80 +6,48 @@ using System.Text;
 using System.Threading.Tasks;
 using UserService.Events;
 using UserService.Exceptions;
+using UserService.TCP;
 
 namespace UserService.Services
 {
     [Serializable]
     internal class UserServiceSlave : MarshalByRefObject, IUserService
     {
-        private readonly IUserServiceMaster serviceMaster;
-        public UserServiceSlave(IUserServiceMaster serviceMaster)
+        private readonly ClientTcp serviceMaster;
+        public UserServiceSlave(ClientTcp serviceMaster)
         {
             this.serviceMaster = serviceMaster;
             RegisterAddUser();
-            RegisterDeleteUser();
-            RegisterOnCreating();  
+            RegisterDeleteUser(); 
         }
 
         private readonly List<User> userList = new List<User>();
 
-        private void AddUser(object sender, AddUserEventArgs eventArgs)
+        private void AddUser(object sender, UserEventArgs eventArgs)
         {
             foreach (var user in eventArgs.Users)
             {
                 userList.Add(user);
-            }
-            
+            }     
         }
 
-        private void AddUsersOnCreating(object sender, AddUserEventArgs eventArgs)
+        private void DeleteUser(object sender, UserEventArgs eventArgs)
         {
-            foreach (var user in eventArgs.Users)
+            foreach (var user in userList)
             {
-                userList.Add(user);
+                if ( user.Equals(eventArgs.Users.First()))
+                    userList.Remove(user);
             }
-            UnregisterOnCreating();
-        }
-
-        private void DeleteUser(object sender, DeleteUserEventArgs eventArgs)
-        {
-            foreach (var user in Search(eventArgs.DeletePredicate))
-            {
-                userList.Remove(user);
-            }
-        }
-
-        public void RegisterAddUser()
-        {
-            serviceMaster.AddUser += AddUser;
-        }
-
-        public void RegisterDeleteUser()
-        {
-            serviceMaster.DeleteUser += DeleteUser;
-        }
-
-        public void UnregisterAddUser()
-        {
-            serviceMaster.AddUser -= AddUser;
-        }
-
-        public void UnregisterDeleteUser()
-        {
-            serviceMaster.DeleteUser -= DeleteUser;
-        }
-
-
-        public void RegisterOnCreating()
-        {
-            serviceMaster.AddUserOnSlaveCreating += AddUsersOnCreating;
-        }
-
-        public void UnregisterOnCreating()
-        {
-            serviceMaster.AddUserOnSlaveCreating -= AddUsersOnCreating;
-        }
-
+        } 
+        
+        public void RegisterAddUser() => serviceMaster.AddUser += AddUser;
+        
+        public void RegisterDeleteUser() => serviceMaster.DeleteUser += DeleteUser;
+        
+        public void UnregisterAddUser() => serviceMaster.AddUser -= AddUser;
+        
+        public void UnregisterDeleteUser() => serviceMaster.DeleteUser -= DeleteUser;
+        
         /// <summary>
         /// Searching elements by predicate
         /// </summary>

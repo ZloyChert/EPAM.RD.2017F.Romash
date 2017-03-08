@@ -8,8 +8,8 @@ namespace UserService.Services
     {
         void Add(User user);
         void Delete(Func<User, bool> deletePredicate);
-        event EventHandler<AddUserEventArgs> AddUser;
-        event EventHandler<DeleteUserEventArgs> DeleteUser;
-        event EventHandler<AddUserEventArgs> AddUserOnSlaveCreating;
+        event EventHandler<UserEventArgs> AddUser;
+        event EventHandler<UserEventArgs> DeleteUser;
+        event EventHandler<UserEventArgs> AddUserOnSlaveCreating;
     }
 }

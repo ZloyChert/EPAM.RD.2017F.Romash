@@ -4,6 +4,8 @@ using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -18,9 +20,9 @@ namespace UserService.Services
     {
         private readonly List<User> userList;
         private readonly ICounterId idCounter;
-        public event EventHandler<AddUserEventArgs> AddUser = delegate { };
-        public event EventHandler<DeleteUserEventArgs> DeleteUser = delegate { };
-        public event EventHandler<AddUserEventArgs> AddUserOnSlaveCreating = delegate { };
+        public event EventHandler<UserEventArgs> AddUser = delegate { };
+        public event EventHandler<UserEventArgs> DeleteUser = delegate { };
+        public event EventHandler<UserEventArgs> AddUserOnSlaveCreating = delegate { };
         
         /// <summary>
         /// Public constructor
@@ -49,7 +51,7 @@ namespace UserService.Services
             if (userList.Exists(u => u.Id == user.Id))
                 throw new UserExistsException();
             userList.Add(user);
-            OnAddUser(new AddUserEventArgs(user));
+            OnAddUser(new UserEventArgs(user));
         }
 
         public void Add(IEnumerable<User> users)
@@ -67,7 +69,7 @@ namespace UserService.Services
                 userList.Add(user);
                 tempUsers.Add(user);
             }
-            OnAddUser(new AddUserEventArgs(tempUsers));
+            OnAddUser(new UserEventArgs(tempUsers));
         }
 
         /// <summary>
@@ -90,28 +92,29 @@ namespace UserService.Services
         {
             if (deletePredicate == null)
                 throw new ArgumentNullException();
+            List<User> tempUsers = Search(deletePredicate).ToList();
             foreach (var user in Search(deletePredicate))
             {
                 userList.Remove(user);
-            }
-            OnDeleteUser(new DeleteUserEventArgs(deletePredicate));
+            }           
+            OnDeleteUser(new UserEventArgs(tempUsers));
         }
 
-        protected virtual void OnAddUser(AddUserEventArgs e)
+        protected virtual void OnAddUser(UserEventArgs e)
         {
-            EventHandler<AddUserEventArgs> temp = AddUser;
+            EventHandler<UserEventArgs> temp = AddUser;
             temp?.Invoke(this, e);
         }
 
         protected virtual void OnAddUserOnCreatingSlave()
         {
-            EventHandler<AddUserEventArgs> temp = AddUserOnSlaveCreating;
-            temp?.Invoke(this, new AddUserEventArgs(userList));
+            EventHandler<UserEventArgs> temp = AddUserOnSlaveCreating;
+            temp?.Invoke(this, new UserEventArgs(userList));
         }
 
-        protected virtual void OnDeleteUser(DeleteUserEventArgs e)
+        protected virtual void OnDeleteUser(UserEventArgs e)
         {
-            EventHandler<DeleteUserEventArgs> temp = DeleteUser;
+            EventHandler<UserEventArgs> temp = DeleteUser;
             temp?.Invoke(this, e);
         }
 

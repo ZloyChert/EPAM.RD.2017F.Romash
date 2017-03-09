@@ -13,10 +13,10 @@ namespace UserService.Services
     [Serializable]
     internal class UserServiceSlave : MarshalByRefObject, IUserService
     {
-        private readonly ClientTcp serviceMaster;
-        public UserServiceSlave(ClientTcp serviceMaster)
+        private readonly ClientTcp tcpClient;
+        public UserServiceSlave(ClientTcp client)
         {
-            this.serviceMaster = serviceMaster;
+            this.tcpClient = client;
             RegisterAddUser();
             RegisterDeleteUser(); 
         }
@@ -33,20 +33,19 @@ namespace UserService.Services
 
         private void DeleteUser(object sender, UserEventArgs eventArgs)
         {
-            foreach (var user in userList)
+            foreach (var user in eventArgs.Users)
             {
-                if ( user.Equals(eventArgs.Users.First()))
-                    userList.Remove(user);
+                userList.RemoveAll(u => u.Equals(user));
             }
         } 
         
-        public void RegisterAddUser() => serviceMaster.AddUser += AddUser;
+        public void RegisterAddUser() => tcpClient.AddUser += AddUser;
         
-        public void RegisterDeleteUser() => serviceMaster.DeleteUser += DeleteUser;
+        public void RegisterDeleteUser() => tcpClient.DeleteUser += DeleteUser;
         
-        public void UnregisterAddUser() => serviceMaster.AddUser -= AddUser;
+        public void UnregisterAddUser() => tcpClient.AddUser -= AddUser;
         
-        public void UnregisterDeleteUser() => serviceMaster.DeleteUser -= DeleteUser;
+        public void UnregisterDeleteUser() => tcpClient.DeleteUser -= DeleteUser;
         
         /// <summary>
         /// Searching elements by predicate

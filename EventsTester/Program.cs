@@ -23,13 +23,16 @@ namespace EventsTester
         {
             ServiceManager sm = new ServiceManager();
             IUserServiceMaster usm;
-            sm.TryGetMasterInstance(out usm);
+            sm.TryGetMasterInstance(out usm);           
+            
             ServerTcp st = new ServerTcp(usm);
+            //Thread serverThread = new Thread(st.RunServer);
+            //serverThread.Start();
+            Task.Run(() => st.RunServer());
             ClientTcp ct = new ClientTcp();
-            Thread serverThread = new Thread(st.RunServer);
-            serverThread.Start();
-            Thread clientThread = new Thread(ct.RunClient);
-            clientThread.Start();
+            //Thread clientThread = new Thread(ct.RunClient);
+            //clientThread.Start();
+            Task.Run(() => ct.RunClient());
             IUserService firstUss;
             sm.TryGetNextSlaveInstance(out firstUss, ct);
             usm.Add(new User { Age = 12, FirstName = "qqwwwqq", LastName = "w" });
@@ -46,7 +49,7 @@ namespace EventsTester
             }
             /*******/
             usm.Delete(n => n.LastName == "w");
-            Thread.Sleep(2000);
+            Console.WriteLine();
             Console.WriteLine("Master");
             foreach (var user in usm.Search(n => true))
             {
@@ -60,8 +63,10 @@ namespace EventsTester
             }
 
             Console.ReadLine();
+            
             st.StopServer();
             ct.StopClient();
+            
         }
     }
 }

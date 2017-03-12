@@ -11,12 +11,12 @@ using UserService.TCP;
 namespace UserService.Services
 {
     [Serializable]
-    internal class UserServiceSlave : MarshalByRefObject, IUserService
+    internal class UserServiceSlave : MarshalByRefObject, IUserServiceSlave
     {
-        private readonly ClientTcp tcpClient;
-        public UserServiceSlave(ClientTcp client)
+        private ClientTcp tcpClient;
+        public void ConnectToTcpClient(ClientTcp client)
         {
-            this.tcpClient = client;
+            tcpClient = client;
             RegisterAddUser();
             RegisterDeleteUser(); 
         }
@@ -40,11 +40,8 @@ namespace UserService.Services
         } 
         
         public void RegisterAddUser() => tcpClient.AddUser += AddUser;
-        
-        public void RegisterDeleteUser() => tcpClient.DeleteUser += DeleteUser;
-        
+        public void RegisterDeleteUser() => tcpClient.DeleteUser += DeleteUser;   
         public void UnregisterAddUser() => tcpClient.AddUser -= AddUser;
-        
         public void UnregisterDeleteUser() => tcpClient.DeleteUser -= DeleteUser;
         
         /// <summary>

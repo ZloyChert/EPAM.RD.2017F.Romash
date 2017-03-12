@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 using System.Xml;
 using UserService.Events;
 using UserService.Exceptions;
 using UserService.IdCounters;
+using UserService.TCP;
 
 namespace UserService.Services
 {
@@ -23,7 +20,14 @@ namespace UserService.Services
         public event EventHandler<UserEventArgs> AddUser = delegate { };
         public event EventHandler<UserEventArgs> DeleteUser = delegate { };
         public event EventHandler<UserEventArgs> AddUserOnSlaveCreating = delegate { };
-        
+
+        public void ConnectToTcpServer(ServerTcp server)
+        {
+            if ( server == null)
+                throw new ArgumentNullException();
+            server.ConnectToMasterService(this);
+        }
+
         /// <summary>
         /// Public constructor
         /// </summary>

@@ -53,6 +53,7 @@
     <Compile Include="ServiceManager.cs" />
     <Compile Include="Services\IUserService.cs" />
     <Compile Include="Services\IUserServiceMaster.cs" />
+    <Compile Include="Services\IUserServiceSlave.cs" />
     <Compile Include="Services\UserServiceSlave.cs" />
     <Compile Include="TCP\ClientTcp.cs" />
     <Compile Include="TCP\MessageUsers.cs" />

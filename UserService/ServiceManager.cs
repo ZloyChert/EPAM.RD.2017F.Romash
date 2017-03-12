@@ -46,17 +46,18 @@ namespace UserService
             return false;
         }
 
-        public bool TryGetNextSlaveInstance(out IUserService slaveService, ClientTcp t)
+        public bool TryGetNextSlaveInstance(out IUserServiceSlave slaveService, ClientTcp t)
         {
             int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
             if (CountOfRemainingSlaves > 0 && CountOfRemainingMasters == 0)
             {
                 AppDomain firstDomain = AppDomain.CreateDomain($"Domain_{countOfSlaves - CountOfRemainingSlaves + 1}");
                 var instance = firstDomain.CreateInstanceAndUnwrap("UserService",
-                    "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new[] { (object)t },
+                    "UserService.Services.UserServiceSlave", true, BindingFlags.Default, null, new object[] {},
                     CultureInfo.CurrentCulture, null);
-                slaveService = (IUserService)instance;
+                slaveService = (IUserServiceSlave)instance;
                 CountOfRemainingSlaves--;
+                slaveService.ConnectToTcpClient(t);
                 MethodInfo method = userServiceMaster.GetType()
                     .GetMethod("OnAddUserOnCreatingSlave", BindingFlags.NonPublic | BindingFlags.Instance);
                 method.Invoke(userServiceMaster, new object[] {});

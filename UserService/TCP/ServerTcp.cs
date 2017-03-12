@@ -16,16 +16,20 @@ namespace UserService.TCP
     {
         private readonly TcpListener tcpListener;
         private readonly List<TcpClient> listClients = new List<TcpClient>();
-        private readonly IUserServiceMaster serviceMaster;
+        private IUserServiceMaster serviceMaster;
         private static readonly string IpAddress = "127.0.0.1";
         private static readonly int Port = 8001;
         public bool IsRunning { get; private set; } = true;
         public void StopServer() => IsRunning = false;
 
-        public ServerTcp(IUserServiceMaster userServiceMaster)
+        public ServerTcp()
+        {
+            tcpListener = new TcpListener(IPAddress.Parse(IpAddress), Port);
+        }
+
+        public void ConnectToMasterService(IUserServiceMaster userServiceMaster)
         {
             serviceMaster = userServiceMaster;
-            tcpListener = new TcpListener(IPAddress.Parse(IpAddress), Port);
             RegisterAddUser();
             RegisterDeleteUser();
             RegisterOnCreating();

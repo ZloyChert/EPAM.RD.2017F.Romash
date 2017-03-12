@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using UserService.Events;
+using UserService.Services;
 
 namespace UserService.TCP
 {
@@ -17,7 +18,12 @@ namespace UserService.TCP
         public event EventHandler<UserEventArgs> DeleteUser = delegate { };
         public bool IsRunning { get; private set; } = true;
         public void StopClient() => IsRunning = false;
-
+        public void ConnectToSlaveService(IUserServiceSlave service)
+        {
+            if (service == null)
+                throw new ArgumentNullException();
+            service.ConnectToTcpClient(this);
+        }
         public void RunClient()
         {
             var tcpclnt = new TcpClient();

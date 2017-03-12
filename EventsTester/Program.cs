@@ -1,17 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using UserService;
-using UserService.IdCounters;
 using UserService.Services;
-using System.Configuration;
-using System.Globalization;
-using System.Net;
-using System.Reflection;
-using System.Threading;
 using UserService.TCP;
 
 namespace EventsTester
@@ -23,17 +13,16 @@ namespace EventsTester
         {
             ServiceManager sm = new ServiceManager();
             IUserServiceMaster usm;
-            sm.TryGetMasterInstance(out usm);           
-            
-            ServerTcp st = new ServerTcp(usm);
-            //Thread serverThread = new Thread(st.RunServer);
-            //serverThread.Start();
+
+            sm.TryGetMasterInstance(out usm);
+            ServerTcp st = new ServerTcp();
+            st.ConnectToMasterService(usm);
             Task.Run(() => st.RunServer());
+
             ClientTcp ct = new ClientTcp();
-            //Thread clientThread = new Thread(ct.RunClient);
-            //clientThread.Start();
-            Task.Run(() => ct.RunClient());
-            IUserService firstUss;
+            Task.Run(() => ct.RunClient());    
+
+            IUserServiceSlave firstUss;
             sm.TryGetNextSlaveInstance(out firstUss, ct);
             usm.Add(new User { Age = 12, FirstName = "qqwwwqq", LastName = "w" });
             Console.WriteLine("Master");

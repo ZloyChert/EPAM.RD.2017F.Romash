@@ -4,6 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using UserService.Events;
 using UserService.Exceptions;
@@ -15,6 +16,8 @@ namespace UserService.Services
     [Serializable]
     public class UserServiceMaster : MarshalByRefObject, IUserServiceMaster, IDisposable
     {
+        private static readonly ReaderWriterLock rwl = new ReaderWriterLock();
+        private static readonly int time = 10000;
         private readonly List<User> userList;
         private readonly ICounterId idCounter;
         public event EventHandler<UserEventArgs> AddUser = delegate { };
@@ -54,7 +57,9 @@ namespace UserService.Services
             idCounter.CountId(user);
             if (userList.Exists(u => u.Id == user.Id))
                 throw new UserExistsException();
+            rwl.AcquireWriterLock(time);
             userList.Add(user);
+            rwl.ReleaseWriterLock();
             OnAddUser(new UserEventArgs(user));
         }
 
@@ -63,6 +68,7 @@ namespace UserService.Services
             if (users == null)
                 throw new ArgumentNullException();
             List<User> tempUsers = new List<User>();
+            rwl.AcquireWriterLock(time);
             foreach (var user in users)
             {
                 if (user?.FirstName == null || user.LastName == null)
@@ -73,6 +79,7 @@ namespace UserService.Services
                 userList.Add(user);
                 tempUsers.Add(user);
             }
+            rwl.ReleaseWriterLock();
             OnAddUser(new UserEventArgs(tempUsers));
         }
 
@@ -85,7 +92,10 @@ namespace UserService.Services
         {
             if (searchPredicate == null)
                 throw new ArgumentNullException();
-            return userList.Where(searchPredicate).ToList();
+            rwl.AcquireReaderLock(time);
+            var listUsers = userList.Where(searchPredicate).ToList();
+            rwl.ReleaseReaderLock();
+            return listUsers;
         }
 
         /// <summary>
@@ -97,10 +107,12 @@ namespace UserService.Services
             if (deletePredicate == null)
                 throw new ArgumentNullException();
             List<User> tempUsers = Search(deletePredicate).ToList();
+            rwl.AcquireWriterLock(time);
             foreach (var user in Search(deletePredicate))
             {
                 userList.Remove(user);
             }           
+            rwl.ReleaseWriterLock();
             OnDeleteUser(new UserEventArgs(tempUsers));
         }
 

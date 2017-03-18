@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using NLog;
+using UserService.AOP;
 using UserService.Events;
 using UserService.Exceptions;
 using UserService.IdCounters;
@@ -16,7 +18,8 @@ namespace UserService.Services
     [Serializable]
     public class UserServiceMaster : MarshalByRefObject, IUserServiceMaster, IDisposable
     {
-        private static readonly ReaderWriterLock rwl = new ReaderWriterLock();
+        public static Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly ReaderWriterLock Rwl = new ReaderWriterLock();
         private static readonly int time = 10000;
         private readonly List<User> userList;
         private readonly ICounterId idCounter;
@@ -35,8 +38,10 @@ namespace UserService.Services
         /// Public constructor
         /// </summary>
         /// <param name="idCounter">Class that counts id</param>
+        [LogMethods]
         public UserServiceMaster(ICounterId idCounter)
         {
+            log.Trace("trace message");
             if (idCounter == null)
                 throw new ArgumentNullException();
             this.idCounter = idCounter;
@@ -57,9 +62,9 @@ namespace UserService.Services
             idCounter.CountId(user);
             if (userList.Exists(u => u.Id == user.Id))
                 throw new UserExistsException();
-            rwl.AcquireWriterLock(time);
+            Rwl.AcquireWriterLock(time);
             userList.Add(user);
-            rwl.ReleaseWriterLock();
+            Rwl.ReleaseWriterLock();
             OnAddUser(new UserEventArgs(user));
         }
 
@@ -68,7 +73,7 @@ namespace UserService.Services
             if (users == null)
                 throw new ArgumentNullException();
             List<User> tempUsers = new List<User>();
-            rwl.AcquireWriterLock(time);
+            Rwl.AcquireWriterLock(time);
             foreach (var user in users)
             {
                 if (user?.FirstName == null || user.LastName == null)
@@ -79,7 +84,7 @@ namespace UserService.Services
                 userList.Add(user);
                 tempUsers.Add(user);
             }
-            rwl.ReleaseWriterLock();
+            Rwl.ReleaseWriterLock();
             OnAddUser(new UserEventArgs(tempUsers));
         }
 
@@ -92,9 +97,9 @@ namespace UserService.Services
         {
             if (searchPredicate == null)
                 throw new ArgumentNullException();
-            rwl.AcquireReaderLock(time);
+            Rwl.AcquireReaderLock(time);
             var listUsers = userList.Where(searchPredicate).ToList();
-            rwl.ReleaseReaderLock();
+            Rwl.ReleaseReaderLock();
             return listUsers;
         }
 
@@ -107,12 +112,12 @@ namespace UserService.Services
             if (deletePredicate == null)
                 throw new ArgumentNullException();
             List<User> tempUsers = Search(deletePredicate).ToList();
-            rwl.AcquireWriterLock(time);
+            Rwl.AcquireWriterLock(time);
             foreach (var user in Search(deletePredicate))
             {
                 userList.Remove(user);
             }           
-            rwl.ReleaseWriterLock();
+            Rwl.ReleaseWriterLock();
             OnDeleteUser(new UserEventArgs(tempUsers));
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,8 +14,10 @@ namespace UserService.AOP
     [Serializable]
     class LogMethodsAttribute : OnMethodBoundaryAspect
     {
+        public static Logger Log = LogManager.GetCurrentClassLogger();
         private string methodName;
         private Type className;
+
         public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
         {
             methodName = method.Name;
@@ -23,7 +26,14 @@ namespace UserService.AOP
 
         public override void OnEntry(MethodExecutionArgs args)
         {
-            Console.WriteLine($"{methodName},{className}");
+            if (bool.Parse(ConfigurationManager.AppSettings["isLogged"]))
+                Log.Trace( $"Сlass {className} call method {methodName}");
+        }
+
+        public override void OnException(MethodExecutionArgs args)
+        {
+            if (bool.Parse(ConfigurationManager.AppSettings["isLogged"]))
+                Log.Error($"Сlass {className} fall with exception {args.Exception}, in method {methodName}");
         }
     }
 }

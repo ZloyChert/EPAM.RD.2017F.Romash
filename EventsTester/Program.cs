@@ -8,7 +8,6 @@ namespace EventsTester
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             ServiceManager sm = new ServiceManager();

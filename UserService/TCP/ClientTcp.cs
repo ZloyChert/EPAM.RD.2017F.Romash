@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using UserService.AOP;
 using UserService.Events;
 using UserService.Services;
 
@@ -16,14 +17,22 @@ namespace UserService.TCP
     {
         public event EventHandler<UserEventArgs> AddUser = delegate { };
         public event EventHandler<UserEventArgs> DeleteUser = delegate { };
+
+        [LogMethods]
         public bool IsRunning { get; private set; } = true;
+
+        [LogMethods]
         public void StopClient() => IsRunning = false;
+
+        [LogMethods]
         public void ConnectToSlaveService(IUserServiceSlave service)
         {
             if (service == null)
                 throw new ArgumentNullException();
             service.ConnectToTcpClient(this);
         }
+
+        [LogMethods]
         public void RunClient()
         {
             var tcpclnt = new TcpClient();
@@ -45,12 +54,14 @@ namespace UserService.TCP
             }
         }
 
+        [LogMethods]
         protected virtual void OnAddUser(UserEventArgs e)
         {
             EventHandler<UserEventArgs> temp = AddUser;
             temp?.Invoke(this, e);
         }
 
+        [LogMethods]
         protected virtual void OnDeleteUser(UserEventArgs e)
         {
             EventHandler<UserEventArgs> temp = DeleteUser;

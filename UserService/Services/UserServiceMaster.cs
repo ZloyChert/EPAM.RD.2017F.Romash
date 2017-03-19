@@ -18,7 +18,7 @@ namespace UserService.Services
     [Serializable]
     public class UserServiceMaster : MarshalByRefObject, IUserServiceMaster, IDisposable
     {
-        public static Logger log = LogManager.GetCurrentClassLogger();
+        
         private static readonly ReaderWriterLock Rwl = new ReaderWriterLock();
         private static readonly int time = 10000;
         private readonly List<User> userList;
@@ -27,6 +27,7 @@ namespace UserService.Services
         public event EventHandler<UserEventArgs> DeleteUser = delegate { };
         public event EventHandler<UserEventArgs> AddUserOnSlaveCreating = delegate { };
 
+        [LogMethods]
         public void ConnectToTcpServer(ServerTcp server)
         {
             if ( server == null)
@@ -41,7 +42,6 @@ namespace UserService.Services
         [LogMethods]
         public UserServiceMaster(ICounterId idCounter)
         {
-            log.Trace("trace message");
             if (idCounter == null)
                 throw new ArgumentNullException();
             this.idCounter = idCounter;
@@ -53,6 +53,7 @@ namespace UserService.Services
         /// Add an element in service
         /// </summary>
         /// <param name="user">The element to add</param>
+        [LogMethods]
         public void Add(User user)
         {
             if (user == null)
@@ -68,6 +69,7 @@ namespace UserService.Services
             OnAddUser(new UserEventArgs(user));
         }
 
+        [LogMethods]
         public void Add(IEnumerable<User> users)
         {
             if (users == null)
@@ -93,6 +95,7 @@ namespace UserService.Services
         /// </summary>
         /// <param name="searchPredicate">Func that checks on each element</param>
         /// <returns>Sequence off elements</returns>
+        [LogMethods]
         public IEnumerable<User> Search(Func<User, bool> searchPredicate)
         {
             if (searchPredicate == null)
@@ -107,6 +110,7 @@ namespace UserService.Services
         /// Deleting an element or elements frome the sequnce
         /// </summary>
         /// <param name="deletePredicate">Func that checks on each element</param>
+        [LogMethods]
         public void Delete(Func<User, bool> deletePredicate)
         {
             if (deletePredicate == null)
@@ -121,18 +125,21 @@ namespace UserService.Services
             OnDeleteUser(new UserEventArgs(tempUsers));
         }
 
+        [LogMethods]
         protected virtual void OnAddUser(UserEventArgs e)
         {
             EventHandler<UserEventArgs> temp = AddUser;
             temp?.Invoke(this, e);
         }
 
+        [LogMethods]
         protected virtual void OnAddUserOnCreatingSlave()
         {
             EventHandler<UserEventArgs> temp = AddUserOnSlaveCreating;
             temp?.Invoke(this, new UserEventArgs(userList));
         }
 
+        [LogMethods]
         protected virtual void OnDeleteUser(UserEventArgs e)
         {
             EventHandler<UserEventArgs> temp = DeleteUser;

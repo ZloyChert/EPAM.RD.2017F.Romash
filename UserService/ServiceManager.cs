@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using UserService.AOP;
 using UserService.Events;
 using UserService.Services;
 using UserService.TCP;
@@ -18,6 +19,7 @@ namespace UserService
         public int CountOfRemainingMasters { get; private set; }
         private IUserServiceMaster userServiceMaster;
 
+        [LogMethods]
         public ServiceManager()
         {
             int tempCount;
@@ -27,7 +29,7 @@ namespace UserService
             CountOfRemainingMasters = 1;
         }
 
-
+        [LogMethods]
         public bool TryGetMasterInstance(out IUserServiceMaster masterService)
         {
             if (CountOfRemainingMasters > 0)
@@ -39,13 +41,13 @@ namespace UserService
                 masterService = (IUserServiceMaster)instance;
                 CountOfRemainingMasters--;
                 userServiceMaster = masterService;
-                //OnAddUserOnCreatingSlave(new AddUserEventArgs(userList));
                 return true;
             }
             masterService = null;
             return false;
         }
 
+        [LogMethods]
         public bool TryGetNextSlaveInstance(out IUserServiceSlave slaveService, ClientTcp t)
         {
             int countOfSlaves = int.Parse(ConfigurationManager.AppSettings["CountOfSlaves"]);
